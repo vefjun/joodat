@@ -1,0 +1,1 @@
+([:dependencies [[speclj "2.2.0"] [org.clojure/clojure "1.4.0"] [joodo "0.10.0"] [com.datomic/datomic-free "0.8.3343"]]])

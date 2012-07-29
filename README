@@ -1,1 +1,7 @@
 Web application built with the web application framework Joodo and database system Datomic.
+
+Install the Joodo plugin for Leinigen, see http://joodoweb.com or https://github.com/slagyr/joodo
+cd to joodat
+lein deps
+lein joodo server
+browse to http://localhost:808

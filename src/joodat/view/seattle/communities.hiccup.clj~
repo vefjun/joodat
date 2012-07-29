@@ -1,0 +1,3 @@
+
+[:h1 "Communities"]
+[:p  (:community *view-context*)]

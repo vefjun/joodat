@@ -1,0 +1,8 @@
+;;Datomic queries for seattle database
+(ns joodat.model.seattle)
+
+(defn communities
+ "returns all communities"
+ [db conn]
+ (q '[:find ?c :where [?c :community/name]] (db conn))
+)

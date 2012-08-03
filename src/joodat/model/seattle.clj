@@ -1,4 +1,4 @@
-;;Datomic queries for seattle database
+;;Datomic queries and functions for seattle database
 (ns joodat.model.seattle
  (:use
     [datomic.api :only [q db] :as d]
@@ -36,6 +36,20 @@
  (q '[:find  ?n ?u :where [?c :community/name ?n]
                              [?c :community/url ?u]]
                             (db conn))
+)
+
+(defn community-query
+ "returns community with given link" 
+ [conn url]
+ (q '[:find  ?c :in $ ?n :where [?c :community/url ?n]]
+                            (db conn)
+                            url)
+)
+
+;; retract a community entity
+(defn community-delete-query
+  [conn url]
+  (d/transact conn [[:db.fn/retractEntity (ffirst (community-query conn url))]])
 )
 
 (defn neighborhood-communities-query

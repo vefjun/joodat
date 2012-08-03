@@ -2,7 +2,7 @@
   :description "A website deployable to AppEngine"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [joodo "0.10.0"]
-                 [com.datomic/datomic-free "0.8.3343"]
+                 [com.datomic/datomic-free "0.8.3372"]
                 ]
 
   :joodo-core-namespace joodat.core

@@ -19,12 +19,14 @@
   ;    (should= nil @rendered-context)
     ))
   
- (it "redirects /seattle route"
-    (let [response (do-get "/seattle")]
-      (should= 302 (:status response))
+
+  
+(it "redirects /seattle route"
+    (let [response (should-redirect-to (do-get "/seattle") "seattle/index")]
+      (should= nil (:status response))
       (should= nil @rendered-template)
    ))
-  
+ 
 
   (it "has /seattle/index route"
     (let [response (do-get "/seattle/index")]
@@ -69,6 +71,10 @@
       (should= "seattle/neighborhood-communities" @rendered-template)
    ))
 
+  (it "has /seattle/community/delete route"
+    (let [response (do-get "/seattle/community/delete/:id")]
+      (should= nil (:status response))
+   ))
   )
 
 

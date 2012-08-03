@@ -7,9 +7,10 @@
   [:link {:href "http://fonts.googleapis.com/css?family=Open+Sans:300" :rel "stylesheet" :type "text/css"}]
   [:title "joodat"]
   (include-css "/stylesheets/reset.css")
-  (include-css "/stylesheets/joodat.css")
-  (include-css "/stylesheets/shCore.css")
-  (include-css "/stylesheets/shThemeDefault.css")
+  ;;(include-css "/stylesheets/joodat.css")
+  ;;(include-css "/stylesheets/shCore.css")
+  ;;(include-css "/stylesheets/shThemeDefault.css")
+  (include-css "/stylesheets/screen.css")
   (include-js "/javascript/jquery-1.7.1.min.js")
   (include-js "/javascript/shCore.js")
   (include-js "/javascript/shBrushClojure.js")

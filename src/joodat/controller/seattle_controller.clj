@@ -3,9 +3,11 @@
     [compojure.core]
     [clojure.pprint]
     [ring.util.response :only (redirect)]
-    [joodo.views :only (render-template render-html)]
+    [joodo.views :only (*view-context* render-template)]
     [datomic.api :only [q db] :as d]
-    [joodat.model.seattle]   
+    [joodat.model.seattle]
+    [hiccup.core]
+    [hiccup.form-helpers]   
   )   
 )
 
@@ -41,56 +43,69 @@
    )
    (render-template "seattle/fail")))
 
-(defn community-names
- "returns an array with community names, urls"
- [conn db]
- (let [results (communities-query conn)]
-  (apply str (map #(str "<p><a href=  " (second %)  ">" (first %) "</a> " "</p>") (sort results)))
- )
+(defn community-line [line]
+ (html [:li
+        [:span
+
+         (form-to [:delete 
+                    (str "/seattle/community/delete/" 
+                      (clojure.string/replace (first line) " " "%20") 
+                      "?url="
+                      (clojure.string/replace (second line) " " "%20")
+                    )
+                  ]
+           [:input.check {:type "submit" :value "X"}])
+         [:a {:href (second line)} (first line)]
+        ]
+       ])
 )
 
-(defn district-names
- "returns a html string with district names and link to neighborhoods"
- [conn db]
- (let [results (districts-query conn)]
-  (apply str (map #(str "<p>" "<a href=/seattle/district-neighborhoods/"   (clojure.string/replace (first %) " " "%20") ">" (first %) "</p>") (sort results)))
- )
+(defn neighborhood-community-line [neighborhood line]
+ (html [:li
+        [:span
+
+         (form-to 
+             [:delete 
+              (str "/seattle/neighborhood-community/delete/"
+                (clojure.string/replace neighborhood " " "%20")
+                "?url="
+                (clojure.string/replace (second line) " " "%20")
+              )
+             ]
+           [:input.check {:type "submit" :value "X"}])
+         [:a {:href (second line)} (first line)]
+        ]
+       ])
 )
 
-(defn neighborhood-names
- "returns aneighborhood names"
- [conn db]
- (let [results (neighborhoods-query conn)]
-  (apply str (map #(str "<p>" "<a href=/seattle/neighborhood-communities/"   (clojure.string/replace (first %) " " "%20") ">" (first %)  "</a>"  "</p>") (sort results)))
- )
+(defn district-line [line]
+ (html [:li
+        [:span 
+         [:a {:href (str "/seattle/district-neighborhoods/" (clojure.string/replace (first line) " " "%20"))} (first line)]
+        ]
+       ])
 )
 
-(defn district-neighborhoods-names
- "returns html with neighborhood names for given district"
- [conn db district]
- (let [results (district-neighborhoods-query conn district)]
-  (apply str (map #(str "<p>" "<a href=/seattle/neighborhood-communities/"   (clojure.string/replace (first %) " " "%20") ">" (first %)  "</a>"  "</p>") (sort results)))
- )
-)
-
-(defn neighborhood-community-names
- "returns html with community links for given neighborhood"
- [conn db neighborhood]
- (let [results (neighborhood-communities-query conn neighborhood)]
-  (apply str (map #(str "<p>" "<a href=" (second %) ">" (first %) "</a>" "</p>") (sort results)))
- )
+(defn neighborhood-line [line]
+ (html [:li
+        [:span 
+         [:a {:href (str "/seattle/neighborhood-communities/" (clojure.string/replace (first line) " " "%20"))} (first line)]
+        ]
+       ])
 )
 
 
 (defn render-communities
- "fetches all communities and renders the links"
+ "fetches all communities and renders"
  [uri]
 
  (try
-  (let [conn (d/connect uri) db (db conn)]
-   (render-template "seattle/communities" :community (community-names conn db))
+  (let [conn (d/connect uri)]
+    (render-template "seattle/communities" 
+      :communities (apply str (html [:ul (map #(community-line %) (sort (communities-query conn))) ])))
   )
   (catch Exception e
+      (println e)
       nil)
  )
 )
@@ -100,8 +115,10 @@
  [uri]
 
  (try
-  (let [conn (d/connect uri) db (db conn)]
-   (render-template "seattle/districts" :districts (district-names conn db))
+  (let [conn (d/connect uri)]
+   (render-template "seattle/districts" 
+    :districts   (apply str (html [:ul (map #(district-line %) (sort (districts-query conn))) ])) 
+   )
   )
   (catch Exception e
       nil)
@@ -115,10 +132,13 @@
  [uri]
  
  (try
-  (let [conn (d/connect uri) db (db conn)]
-  (render-template "seattle/neighborhoods" :neighborhoods (neighborhood-names conn db))
+  (let [conn (d/connect uri)]
+   (render-template "seattle/neighborhoods" 
+    :neighborhoods   (apply str (html [:ul (map #(neighborhood-line %) (sort (neighborhoods-query conn))) ]))   
+   )
   )
   (catch Exception e
+   (println e)
       nil)
  )
 )
@@ -127,8 +147,11 @@
  "renders neighborhood links for given district"
  [uri district]
 
- (let [conn (d/connect uri) db (db conn)]
-  (render-template "seattle/district-neighborhoods" :neighborhoods (district-neighborhoods-names conn db district) :district district)
+ (let [conn (d/connect uri)]
+  (render-template "seattle/district-neighborhoods" 
+   :neighborhoods (apply str (map #(neighborhood-line %) (sort (district-neighborhoods-query conn district))))
+   :district district
+  )
  )
 )
 
@@ -136,9 +159,29 @@
  "renders community links for given neighborhood"
  [uri neighborhood]
 
- (let [conn (d/connect uri) db (db conn)]
-  (render-template "seattle/neighborhood-communities" :communities (neighborhood-community-names conn db neighborhood) :neighborhood neighborhood)
+ (let [conn (d/connect uri)]
+  (render-template "seattle/neighborhood-communities" 
+   :communities (apply str (map #(neighborhood-community-line neighborhood %) (sort (neighborhood-communities-query conn neighborhood))))
+   :neighborhood neighborhood)
  )
+)
+
+(defn delete-community
+  [uri url]
+  (let [conn (d/connect uri)]
+    (community-delete-query conn url)
+    (render-communities uri)
+  )
+)
+
+(defn delete-neighborhood-community
+  [uri neighborhood url]
+  (let [conn (d/connect uri)]
+    (if (community-delete-query conn url)
+      (redirect (str "/seattle/neighborhood-communities/" neighborhood));;(render-neighborhood-communities uri neighborhood)
+      (render-template "seattle/fail")
+    )
+  )
 )
 
 (defroutes seattle-controller
@@ -150,6 +193,8 @@
   (GET "/seattle/communities" [] (render-communities uri))
   (GET "/seattle/district-neighborhoods/:id" [id] (render-district-neighborhoods uri id))
   (GET "/seattle/neighborhood-communities/:id" [id] (render-neighborhood-communities uri id))
+  (DELETE "/seattle/community/delete/:id" [id url] (delete-community uri url)) 
+  (DELETE "/seattle/neighborhood-community/delete/:id" [id url] (delete-neighborhood-community uri id url))
 
   (context "/seattle" []
     (GET "/test" [] {:status 200 :body "PASS"})))

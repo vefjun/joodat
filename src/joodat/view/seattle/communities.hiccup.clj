@@ -1,3 +1,3 @@
 
 [:h1 "Community links"]
-[:p  (:community *view-context*)]
+[:p  (:communities *view-context*)]

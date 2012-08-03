@@ -8,6 +8,8 @@
 
 [:p "With it you can browse the Seattle data that ships with Datomic."]
 
-[:p "Start by " [:a {:href "/seattle/initdb"} "creating"] " the database and loading the data."]
+[:p  
+  [:a {:href "/seattle/initdb"} "Start"] 
+  " by creating the database and loading the data."]
 
 

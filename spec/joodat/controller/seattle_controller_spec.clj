@@ -58,11 +58,11 @@
       (should= "seattle/neighborhoods" @rendered-template)
    ))
 
- (it "has /seattle/district-neighborhoods route"
-    (let [response (do-get "/seattle/district-neighborhoods/:id")]
-      (should= 200 (:status response))
-      (should= "seattle/district-neighborhoods" @rendered-template)
-   ))
+ ;(it "has /seattle/district-neighborhoods route"
+ ;   (let [response (do-get "/seattle/district-neighborhoods")]
+ ;     (should= 200 (:status response))
+ ;     (should= "seattle/district-neighborhoods" @rendered-template)
+ ;  ))
 
 
   (it "has /seattle/neighborhood-communities route"

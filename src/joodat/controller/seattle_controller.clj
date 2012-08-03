@@ -43,6 +43,11 @@
    )
    (render-template "seattle/fail")))
 
+(defelem render-decorated-button [name & [icon-class]]
+  [:a {:href "#"}
+   [:button.btn.btn-small
+    [:i {:class (or icon-class )}] name]])
+
 (defn community-line [line]
  (html [:li
         [:span
@@ -54,7 +59,7 @@
                       (clojure.string/replace (second line) " " "%20")
                     )
                   ]
-           [:input.check {:type "submit" :value "X"}])
+               (render-decorated-button {:rel "tooltip" :title "Delete link"} "X" ))
          [:a {:href (second line)} (first line)]
         ]
        ])
@@ -72,8 +77,8 @@
                 (clojure.string/replace (second line) " " "%20")
               )
              ]
-           [:input.check {:type "submit" :value "X"}])
-         [:a {:href (second line)} (first line)]
+             (render-decorated-button  { :rel "tooltip" :title "Delete link"}  "X" ))
+          [:a {:href (second line)} (first line)]
         ]
        ])
 )
@@ -81,7 +86,9 @@
 (defn district-line [line]
  (html [:li
         [:span 
-         [:a {:href (str "/seattle/district-neighborhoods/" (clojure.string/replace (first line) " " "%20"))} (first line)]
+         [:a {:href (str "/seattle/district-neighborhoods" 
+                    "?district="
+                    (clojure.string/replace (first line) " " "%20"))} (first line)]
         ]
        ])
 )
@@ -178,7 +185,7 @@
   [uri neighborhood url]
   (let [conn (d/connect uri)]
     (if (community-delete-query conn url)
-      (redirect (str "/seattle/neighborhood-communities/" neighborhood));;(render-neighborhood-communities uri neighborhood)
+      (redirect (str "/seattle/neighborhood-communities/" neighborhood))
       (render-template "seattle/fail")
     )
   )
@@ -191,7 +198,7 @@
   (GET "/seattle/districts" [] (render-districts uri))
   (GET "/seattle/neighborhoods" [] (render-neighborhoods uri))
   (GET "/seattle/communities" [] (render-communities uri))
-  (GET "/seattle/district-neighborhoods/:id" [id] (render-district-neighborhoods uri id))
+  (GET "/seattle/district-neighborhoods" [district] (render-district-neighborhoods uri district))
   (GET "/seattle/neighborhood-communities/:id" [id] (render-neighborhood-communities uri id))
   (DELETE "/seattle/community/delete/:id" [id url] (delete-community uri url)) 
   (DELETE "/seattle/neighborhood-community/delete/:id" [id url] (delete-neighborhood-community uri id url))

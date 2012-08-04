@@ -86,6 +86,13 @@
 (defn district-line [line]
  (html [:li
         [:span 
+         (form-to [:delete 
+                    (str "/seattle/district/delete" 
+                      "?district="
+                      (clojure.string/replace (first line) " " "%20")
+                    )
+                  ]
+               (render-decorated-button {:rel "tooltip" :title "Delete"} "X" ))
          [:a {:href (str "/seattle/district-neighborhoods" 
                     "?district="
                     (clojure.string/replace (first line) " " "%20"))} (first line)]
@@ -96,6 +103,29 @@
 (defn neighborhood-line [line]
  (html [:li
         [:span 
+         (form-to [:delete 
+                    (str "/seattle/neighborhood/delete" 
+                      "?neighborhood="
+                      (clojure.string/replace (first line) " " "%20")
+                    )
+                  ]
+               (render-decorated-button {:rel "tooltip" :title "Delete"} "X" ))
+         [:a {:href (str "/seattle/neighborhood-communities/" (clojure.string/replace (first line) " " "%20"))} (first line)]
+        ]
+       ])
+)
+
+(defn district-neighborhood-line [district line]
+ (html [:li
+        [:span 
+         (form-to [:delete 
+                    (str "/seattle/district-neighborhood/delete" 
+                      "?district=" district
+                      "&neighborhood="
+                      (clojure.string/replace (first line) " " "%20")
+                    )
+                  ]
+               (render-decorated-button {:rel "tooltip" :title "Delete"} "X" ))
          [:a {:href (str "/seattle/neighborhood-communities/" (clojure.string/replace (first line) " " "%20"))} (first line)]
         ]
        ])
@@ -156,7 +186,7 @@
 
  (let [conn (d/connect uri)]
   (render-template "seattle/district-neighborhoods" 
-   :neighborhoods (apply str (map #(neighborhood-line %) (sort (district-neighborhoods-query conn district))))
+   :neighborhoods (apply str (map #(district-neighborhood-line district %) (sort (district-neighborhoods-query conn district))))
    :district district
   )
  )
@@ -172,6 +202,31 @@
    :neighborhood neighborhood)
  )
 )
+
+(defn delete-district
+  [uri district]
+  (let [conn (d/connect uri)]
+    (district-delete-query conn district)
+    (render-districts uri)
+  )
+)
+
+(defn delete-neighborhood
+  [uri neighborhood]
+  (let [conn (d/connect uri)]
+    (neighborhood-delete-query conn neighborhood)
+    (render-neighborhoods uri)
+  )
+)
+
+(defn delete-district-neighborhood
+  [uri district neighborhood]
+  (let [conn (d/connect uri)]
+    (neighborhood-delete-query conn neighborhood)
+    (render-district-neighborhoods uri district)
+  )
+)
+
 
 (defn delete-community
   [uri url]
@@ -200,6 +255,9 @@
   (GET "/seattle/communities" [] (render-communities uri))
   (GET "/seattle/district-neighborhoods" [district] (render-district-neighborhoods uri district))
   (GET "/seattle/neighborhood-communities/:id" [id] (render-neighborhood-communities uri id))
+  (DELETE "/seattle/district/delete" [district] (delete-district uri district))
+  (DELETE "/seattle/neighborhood/delete" [neighborhood] (delete-neighborhood uri neighborhood))
+  (DELETE "/seattle/district-neighborhood/delete" [district neighborhood] (delete-district-neighborhood uri district neighborhood))      
   (DELETE "/seattle/community/delete/:id" [id url] (delete-community uri url)) 
   (DELETE "/seattle/neighborhood-community/delete/:id" [id url] (delete-neighborhood-community uri id url))
 

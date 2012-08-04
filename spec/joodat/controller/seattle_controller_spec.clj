@@ -75,6 +75,12 @@
     (let [response (do-get "/seattle/community/delete/:id")]
       (should= nil (:status response))
    ))
+
+ (it "has /seattle/district/delete route"
+    (let [response (do-get "/seattle/district/delete/:id")]
+      (should= nil (:status response))
+   ))
+
   )
 
 

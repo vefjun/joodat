@@ -60,6 +60,16 @@
                     )
                   ]
                (render-decorated-button {:rel "tooltip" :title "Delete link"} "X" ))
+
+        (form-to [:post 
+                    (str "/seattle/community/edit/" 
+                      (clojure.string/replace (first line) " " "%20") 
+                      "?url="
+                      (clojure.string/replace (second line) " " "%20")
+                    )
+                  ]
+               (render-decorated-button {:rel "tooltip" :title "Edit link"} "edit" ))
+
          [:a {:href (second line)} (first line)]
         ]
        ])
@@ -203,6 +213,7 @@
  )
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn delete-district
   [uri district]
   (let [conn (d/connect uri)]
@@ -246,6 +257,25 @@
   )
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn render-edit-community
+  [uri url]
+  (let [conn (d/connect uri) id (ffirst (community-query conn url)) community-entity (-> conn db (d/entity id))]
+     (render-template "seattle/community-edit" :community-entity community-entity
+                                               :id id )
+  )
+)
+
+
+(defn update-community
+ [uri params]
+ (let [conn (d/connect uri)]
+  (update-community-query conn (:id params) params)
+  (render-edit-community uri (:url params))
+ )
+)
+
+
 (defroutes seattle-controller
   (GET "/seattle" [] (redirect "seattle/index"))
   (GET "/seattle/index" [] (render-template "seattle/index"))
@@ -260,6 +290,9 @@
   (DELETE "/seattle/district-neighborhood/delete" [district neighborhood] (delete-district-neighborhood uri district neighborhood))      
   (DELETE "/seattle/community/delete/:id" [id url] (delete-community uri url)) 
   (DELETE "/seattle/neighborhood-community/delete/:id" [id url] (delete-neighborhood-community uri id url))
+
+  (POST "/seattle/community/edit/:id" [id url] (render-edit-community uri url))
+  (POST "/seattle/community" {params :params} (update-community uri params))
 
   (context "/seattle" []
     (GET "/test" [] {:status 200 :body "PASS"})))

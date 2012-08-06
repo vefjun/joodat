@@ -154,7 +154,9 @@
 (defn community-query
  "returns community with given link" 
  [conn url]
- (q '[:find  ?c :in $ ?n :where [?c :community/url ?n]]
+ (q '[:find  ?c ?url :in $ ?url :where 
+			[?c :community/url ?url]                        
+                        ]
                             (db conn)
                             url)
 )
@@ -163,6 +165,18 @@
 (defn community-delete-query
   [conn url]
   (d/transact conn [[:db.fn/retractEntity (ffirst (community-query conn url))]])
+)
+
+
+(defn update-community-query
+ [conn id params]
+ @(d/transact conn [{:db/id (read-string id)
+                      :community/name (:name params)
+                      :community/url (:url params)
+                      :community/type (keyword (str "community.type/" (:type params)))
+                      :community/orgtype (keyword (str "community.orgtype/" (:orgtype params)))
+                      :community/category (:category params)                   
+                      }])
 )
 
 (defn neighborhood-communities-query
